@@ -1,0 +1,38 @@
+spring:
+  datasource:
+        name: test
+        url: jdbc:mysql://127.0.0.1:3306/bbs?useUnicode=true&characterEncoding=utf-8
+        username: root
+        password: root
+        # 使用druid数据源
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 20
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+  jpa:
+        database : MYSQL
+        show-sql : true
+        format-sql: true
+        hibernate:
+          ddl-auto : update
+          naming-strategy : org.hibernate.cfg.ImprovedNamingStrategy
+        properties:
+          hibernate:
+            dialect : org.hibernate.dialect.MySQL5Dialect
+  resources:
+      chain:
+            strategy:
+               content:
+                  enabled: true
+                  paths: /**

@@ -1,0 +1,106 @@
+create or replace procedure query_articles(
+       user_id in number,--游客userid号
+       cur_page in number,--当前是第几页      
+       rec out sys_refcursor,
+       page_rec out number,--当前游客的分页中每页的条目
+       max_count out number--总共的最大行数主贴
+      
+)
+
+is
+
+begin
+	--查询的是主贴总共的最大行数
+  select count(*) into max_count 
+  from article 
+  where rootid=0;
+ 
+  
+  if user_id=999 then--游客的标示
+    page_rec:=5;
+  else--合法用户，先找出当前用户的每页行数
+    select pagenum  into page_rec from bbsuser where id=user_id;
+  end if;
+    open rec for
+    select * from (
+           select page.*,rownum rn
+           from  (select        
+                                get_replycount(a.id) rcount,
+                                a.userid userid ,
+                                b.username username,
+                                b.pic pic,
+                                b.id bid,
+                                a.rootid,
+                                a.title,
+                                a.datetime,
+                                a.content,
+                                a.id aid,
+                                b.pagenum pnum 
+                 from article a
+                 join bbsuser b on(a.userid=b.id)
+                 where a.rootid=0  
+                 order by a.id desc) page
+       
+           where rownum <= (cur_page-1)*page_rec+ page_rec
+    )
+    where rn > (cur_page-1)*page_rec;
+  
+  
+
+end;
+
+
+
+
+
+create or replace function get_replycount(
+       in_id in article.id%type
+
+)
+
+
+return number
+is
+rcount number(10);
+
+begin
+       select count(*) into rcount from  article where rootid=in_id;
+       return rcount;
+
+exception
+  when others then
+    dbms_output.put_line('错误'||sqlerrm||sqlcode);
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+create or replace function Query_replay (
+       --根据主帖找到回帖
+       in_id in number,
+       rec out sys_refcursor
+       
+)      
+return  
+      varchar2 
+is
+   ztitle   article.title%type;
+begin
+  select title into ztitle from article where id=in_id;
+  open   rec for
+  select * from article
+  where rootid=in_id  order by id desc;
+  return ztitle;
+  
+end Query_replay;
